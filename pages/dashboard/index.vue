@@ -45,6 +45,7 @@ const showAddEmp = () => {
       el.classList.add("hidden");
     }
   }
+  appStore.$state.isEdit = false;
   Object.keys(appStore.$state.detEmp).forEach((key) => {
     if (
       Array("namadept", "namastatus", "namajabatan", "jnskelamin").includes(key)
@@ -74,7 +75,7 @@ const editEmp = async (det: LsEmployee) => {
   )?.valOpt as string;
 
   isLoading.value = false;
-
+  appStore.$state.isEdit = true;
   const modEl: HTMLDialogElement | null = document.querySelector("#addEmp");
   if (modEl) modEl.showModal();
   const el: null | HTMLElement = document.getElementById("listAdd");
@@ -250,7 +251,7 @@ const listPage = computed(() => {
       >
         <div class="flex justify-between items-center">
           <div class="flex gap-2 items-center">
-            <h1 class="font-semibold text-lg">List Karyawan</h1>
+            <h1 class="font-semibold text-lg">List Pegawai</h1>
             <div class="relative" ref="btnAdd">
               <button
                 @click="showAddOption"
@@ -268,7 +269,7 @@ const listPage = computed(() => {
                   class="hover:border-b hover:border-dark-green"
                   @click="showAddEmp"
                 >
-                  Karyawan
+                  Pegawai
                 </button>
                 <button
                   type="button"
@@ -291,7 +292,7 @@ const listPage = computed(() => {
               </div>
             </div>
           </div>
-          <InputSearch placeholder="Cari Karyawan" v-model="searchEmp" />
+          <InputSearch placeholder="Cari Pegawai" v-model="searchEmp" />
         </div>
         <div ref="tableEl" class="flex-grow overflow-auto">
           <table class="table-auto overflow-auto w-full">
@@ -303,7 +304,7 @@ const listPage = computed(() => {
                 <th class="p-2">Tempat Lahir</th>
                 <th class="p-2">Jenis Kelamin</th>
                 <th class="p-2">Telepon</th>
-                <th class="p-2">Alamat</th>
+                <th class="py-2 px-20">Alamat</th>
                 <th class="p-2">Status</th>
                 <th class="p-2 whitespace-nowrap">Tgl Bekerja</th>
                 <th class="p-2 flex flex-wrap">

@@ -93,6 +93,33 @@ export const useAppApi = () => {
     }
   };
 
+  const resUpdateEmp = ref<any>();
+  const updateEmpAPI = async (data: LsEmployee) => {
+    try {
+      await getCSRF();
+      resUpdateEmp.value = await $fetch(
+        baseURL + "/employee-api/public/api/updateemp",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${authStore.$state.token}`,
+          },
+          body: data,
+        }
+      );
+    } catch (error) {
+      const textError = String(error);
+      const txt = textError.replaceAll("(", "");
+      const splitError = txt.split(" ");
+      throw createError({
+        statusCode: parseInt(splitError[2]),
+        message: "Update Employee",
+        fatal: true,
+      });
+    }
+  };
+
   const resDeleteEmp = ref<any>();
   const deleteEmpAPI = async (data: { nip: string; updateby: string }) => {
     try {
@@ -129,5 +156,7 @@ export const useAppApi = () => {
     addEmpAPI,
     resDeleteEmp,
     deleteEmpAPI,
+    resUpdateEmp,
+    updateEmpAPI,
   };
 };

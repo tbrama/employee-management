@@ -28,11 +28,13 @@ export const useAppStore = defineStore("app", () => {
   });
   const lsEmp = ref<null | ListEmp>(null);
   const lsJabat = ref<Options[] | null>(null);
+  const isEdit = ref(false);
 
   return {
     detEmp,
     lsEmp,
     lsJabat,
+    isEdit,
   };
 });
 

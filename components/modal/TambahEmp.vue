@@ -25,6 +25,8 @@ const {
   addEmpAPI,
   resListEmp,
   listEmpAPI,
+  resUpdateEmp,
+  updateEmpAPI,
 } = useAppApi();
 
 const emit = defineEmits(["close-action", "simpan"]);
@@ -38,10 +40,8 @@ const close = () => {
   v$.value.$reset();
   appStore.$state.lsJabat = null;
   // console.log(appStore.$state.detEmp);
-  emit("close-action");
+  // emit("close-action");
 };
-
-// const dataModRkp = reactive({ kdoutlet: "X" });
 
 const rules = computed(() => {
   return {
@@ -96,11 +96,14 @@ const rules = computed(() => {
       required: helpers.withMessage("Status menikah wajib di isi", required),
       charName: helpers.withMessage("Ilegal karakter", charName),
     },
-    // addby: "",
   };
 });
 
-const v$ = useVuelidate(rules, appStore.$state.detEmp);
+const modelVal = computed(() => {
+  return appStore.$state.detEmp;
+});
+
+const v$ = useVuelidate(rules, modelVal, { $lazy: true });
 
 const loadJabat = ref(false);
 const getJabatan = async () => {
@@ -114,14 +117,23 @@ const getJabatan = async () => {
 };
 
 const simpanEmp = async () => {
+  console.log(v$.value.$model);
+  v$.value.$reset();
   v$.value.$validate();
   if (!v$.value.$error) {
     appStore.$state.detEmp.addby = useAuthStore().$state.profile
       ?.nip2 as string;
+    appStore.$state.detEmp.lastupdateby = useAuthStore().$state.profile
+      ?.nip2 as string;
     const modEl: HTMLDialogElement | null = document.querySelector("#addEmp");
     if (modEl) modEl.close();
     emit("simpan");
-    await addEmpAPI(appStore.$state.detEmp);
+    if (!appStore.$state.isEdit) {
+      await addEmpAPI(appStore.$state.detEmp);
+    } else {
+      // console.log(appStore.$state.detEmp);
+      await updateEmpAPI(appStore.$state.detEmp);
+    }
     await listEmpAPI();
     if (resListEmp.value) appStore.$state.lsEmp = resListEmp.value;
     emit("simpan");
@@ -137,6 +149,7 @@ const simpanEmp = async () => {
 
 <template>
   <dialog
+    @keydown.esc="close"
     id="addEmp"
     class="bg-transparent mr-0 min-w-[50%] max-w-[95%] my-0 h-[100dvh] max-h-[100dvh]"
   >
@@ -145,7 +158,9 @@ const simpanEmp = async () => {
         class="p-2 font-bold bg-dark-green flex justify-between items-center"
       >
         <div>
-          <p class="text-slate-50">Tambah Karyawan</p>
+          <p class="text-slate-50">
+            {{ !appStore.$state.isEdit ? "Tambah Pegawai" : "Edit Pegawai" }}
+          </p>
         </div>
         <button @click="close">
           <Icon name="mdi:close-circle" class="text-slate-50 text-xl" />
