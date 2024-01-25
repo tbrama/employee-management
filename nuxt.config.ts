@@ -1,3 +1,4 @@
+import { isProduction } from "std-env";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
@@ -22,4 +23,11 @@ export default defineNuxtConfig({
     },
   },
   modules: ["nuxt-icon", "@nuxtjs/tailwindcss", "@vueuse/nuxt", "@pinia/nuxt"],
+  ssr: false,
+  runtimeConfig: {
+    keyLs: process.env.KEY_LS,
+    public: {
+      production_mode: isProduction,
+    },
+  },
 });
