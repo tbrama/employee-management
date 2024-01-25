@@ -31,27 +31,131 @@ const listEmp = computed(() => {
 });
 
 onMounted(async () => {
+  if (!useAuthStore().$state.token) {
+    useRouter().replace("/");
+    return;
+  }
   isLoading.value = true;
   await getLsEmp();
   isLoading.value = false;
+});
+
+const tableEl = ref<HTMLElement>();
+const showSearchPagin = ref(false);
+const srchPaginVal = ref();
+
+const currPage = ref(1);
+const paginClass = computed(() => {
+  return (pagin: number) => {
+    if (pagin == currPage.value) return "text-slate-50 bg-brown";
+    else return "text-brown";
+  };
+});
+
+const goToFirst = () => {
+  if (currPage.value != 1) {
+    currPage.value = 1;
+    tableEl.value?.scrollTo({ top: 0 });
+  }
+};
+
+const goNext = () => {
+  if (
+    listEmp.value.length &&
+    Math.ceil(listEmp.value.length / 20) > currPage.value
+  ) {
+    currPage.value = currPage.value + 1;
+    tableEl.value?.scrollTo({ top: 0 });
+  }
+};
+
+const goTo = (page: number) => {
+  currPage.value = page;
+  tableEl.value?.scrollTo({ top: 0 });
+};
+
+const goPrevious = () => {
+  if (currPage.value > 1) {
+    currPage.value = currPage.value - 1;
+    tableEl.value?.scrollTo({ top: 0 });
+  }
+};
+
+const goToLast = () => {
+  if (
+    listEmp.value.length &&
+    currPage.value != Math.ceil(listEmp.value.length / 20)
+  ) {
+    currPage.value = Math.ceil(listEmp.value.length / 20);
+    tableEl.value?.scrollTo({ top: 0 });
+  }
+};
+
+const searchPagin = () => {
+  if (srchPaginVal.value > Math.ceil((listEmp.value.length as number) / 20)) {
+    currPage.value = Math.ceil((listEmp.value.length as number) / 20);
+    srchPaginVal.value = currPage.value;
+    tableEl.value?.scrollTo({ top: 0 });
+    return;
+  }
+  if (srchPaginVal.value < 1) {
+    currPage.value = 1;
+    tableEl.value?.scrollTo({ top: 0 });
+    return;
+  }
+  currPage.value = srchPaginVal.value;
+  tableEl.value?.scrollTo({ top: 0 });
+};
+
+const pageCount = computed(() => {
+  if (listEmp.value.length as number)
+    return Math.ceil((listEmp.value.length as number) / 20);
+  return 1;
+});
+
+const trailNumber = ref(2);
+const startNumber = computed(() => {
+  return currPage.value > trailNumber.value
+    ? currPage.value - trailNumber.value
+    : 1;
+});
+const endNumber = computed(() => {
+  return currPage.value < pageCount.value - trailNumber.value
+    ? currPage.value + trailNumber.value
+    : pageCount.value;
+});
+const listPage = computed(() => {
+  let list = Array();
+  for (let i = startNumber.value; i <= endNumber.value; i++) {
+    list.push(i);
+  }
+  return list;
 });
 </script>
 
 <template>
   <div class="h-[100dvh] flex flex-col bg-lightl">
-    <NavTop />
+    <NavTop @logout="isLoading = !isLoading" />
     <div class="flex-grow flex flex-col p-4 overflow-auto">
       <div
         class="flex-grow p-2 shadow rounded bg-slate-50 flex flex-col gap-2 overflow-auto"
       >
-        <div class="flex justify-between">
-          <h1 class="font-semibold text-lg">List Karyawan</h1>
+        <div class="flex justify-between items-center">
+          <div class="flex gap-2 items-center">
+            <h1 class="font-semibold text-lg">List Karyawan</h1>
+            <button
+              type="button"
+              class="bg-green p-2 rounded text-slate-50 shadow"
+            >
+              Tambah Karyawan <Icon name="mdi:plus" />
+            </button>
+          </div>
           <InputSearch placeholder="Cari Karyawan" v-model="searchEmp" />
         </div>
-        <div class="flex-grow overflow-auto">
-          <table class="table-auto overflow-auto">
+        <div ref="tableEl" class="flex-grow overflow-auto">
+          <table class="table-auto overflow-auto w-full">
             <thead class="sticky top-0">
-              <tr class="bg-brown text-slate-50">
+              <tr class="bg-dark-green text-slate-50">
                 <th class="p-2">NIP</th>
                 <th class="p-2 whitespace-nowrap">Nama Lengkap</th>
                 <th class="p-2 whitespace-nowrap">Tgl Lahir</th>
@@ -77,87 +181,181 @@ onMounted(async () => {
               </tr>
             </thead>
             <tbody>
-              <template v-for="n in 60">
-                <tr
-                  v-for="(le, index) in listEmp"
-                  :class="{
-                    'bg-gray-200': index % 2 != 0,
-                    'bg-slate-50': index % 2 == 0,
-                  }"
-                  class="text-sm"
-                >
-                  <td class="p-1">{{ le.nip }}</td>
-                  <td class="p-1">{{ le.nmlengkap }}</td>
-                  <td class="p-1">
-                    {{ formatDate(le.tgllahir) }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.tmplahir }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.jnskelamin }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.telepon }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.alamat }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.namastatus }}
-                  </td>
-                  <td class="p-1">
-                    {{ formatDate(le.tglbekerja) }}
-                  </td>
-                  <td class="p-1">
-                    {{
-                      le.tglakhirkontrak ? formatDate(le.tglakhirkontrak) : "-"
-                    }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.namadept }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.namajabatan }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.email }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.agama }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.statusmenikah }}
-                  </td>
-                  <td class="p-1">
-                    {{ le.addby }}
-                  </td>
-                  <td class="p-1">
-                    {{ formatDate(le.addat) }}
-                  </td>
-                  <td class="p-1">{{ le.lastupdateby }}</td>
-                  <td class="p-1">
-                    {{ formatDate(le.updateat) }}
-                  </td>
-                  <td class="p-1">
-                    <span
-                      class="flex-grow flex gap-2 items-center justify-center"
-                    >
-                      <button type="button" class="flex items-center">
-                        <Icon
-                          name="mdi:account-edit"
-                          class="text-xl text-green"
-                        />
-                      </button>
-                      <button type="button" class="flex items-center">
-                        <Icon name="mdi:delete" class="text-xl text-red-600" />
-                      </button>
-                    </span>
-                  </td>
-                </tr>
-              </template>
+              <tr
+                v-for="(le, index) in listEmp.slice(
+                  (currPage - 1) * 20,
+                  20 * currPage
+                )"
+                :class="{
+                  'bg-gray-200': index % 2 != 0,
+                  'bg-slate-50': index % 2 == 0,
+                }"
+                class="text-sm"
+              >
+                <td class="p-1">{{ le.nip }}</td>
+                <td class="p-1">{{ le.nmlengkap }}</td>
+                <td class="p-1">
+                  {{ formatDate(le.tgllahir) }}
+                </td>
+                <td class="p-1">
+                  {{ le.tmplahir }}
+                </td>
+                <td class="p-1">
+                  {{ le.jnskelamin }}
+                </td>
+                <td class="p-1">
+                  {{ le.telepon }}
+                </td>
+                <td class="p-1">
+                  {{ le.alamat }}
+                </td>
+                <td class="p-1">
+                  {{ le.namastatus }}
+                </td>
+                <td class="p-1">
+                  {{ formatDate(le.tglbekerja) }}
+                </td>
+                <td class="p-1">
+                  {{
+                    le.tglakhirkontrak ? formatDate(le.tglakhirkontrak) : "-"
+                  }}
+                </td>
+                <td class="p-1">
+                  {{ le.namadept }}
+                </td>
+                <td class="p-1">
+                  {{ le.namajabatan }}
+                </td>
+                <td class="p-1">
+                  {{ le.email }}
+                </td>
+                <td class="p-1">
+                  {{ le.agama }}
+                </td>
+                <td class="p-1">
+                  {{ le.statusmenikah }}
+                </td>
+                <td class="p-1">
+                  {{ le.addby }}
+                </td>
+                <td class="p-1">
+                  {{ formatDate(le.addat) }}
+                </td>
+                <td class="p-1">{{ le.lastupdateby }}</td>
+                <td class="p-1">
+                  {{ formatDate(le.updateat) }}
+                </td>
+                <td class="p-1">
+                  <span
+                    class="flex-grow flex gap-2 items-center justify-center"
+                  >
+                    <button type="button" class="flex items-center">
+                      <Icon
+                        name="mdi:account-edit"
+                        class="text-xl text-green"
+                      />
+                    </button>
+                    <button type="button" class="flex items-center">
+                      <Icon name="mdi:delete" class="text-xl text-red-600" />
+                    </button>
+                  </span>
+                </td>
+              </tr>
             </tbody>
           </table>
+          <div
+            v-if="listEmp.length"
+            class="flex flex-wrap md:justify-between sticky bottom-0 bg-white gap-2 items-end p-1"
+          >
+            <div class="flex gap-1 items-center">
+              <div v-if="listPage.length > 1">
+                <ul v-if="listEmp.length" class="flex cursor-pointer">
+                  <li
+                    @click="goPrevious"
+                    :class="vlsMs.pagin"
+                    class="px-2 py-1 flex items-center text-green justify-center rounded-l"
+                  >
+                    <Icon name="mdi:chevron-left" class="text-h5" />
+                  </li>
+                  <li
+                    v-if="startNumber >= trailNumber"
+                    @click="goToFirst"
+                    :class="vlsMs.pagin"
+                    class="px-2 py-1 flex items-center justify-center text-green"
+                  >
+                    1
+                  </li>
+                  <li
+                    v-for="lp in listPage"
+                    :key="lp"
+                    class="px-2 py-1 flex items-center justify-center"
+                    :class="[vlsMs.pagin, paginClass(lp)]"
+                    @click="goTo(lp)"
+                  >
+                    {{ lp }}
+                  </li>
+                  <li
+                    v-if="!showSearchPagin"
+                    @click="showSearchPagin = true"
+                    class="px-2 py-1 flex items-center justify-center text-green"
+                    :class="vlsMs.pagin"
+                  >
+                    <span>...</span>
+                  </li>
+                  <li
+                    v-else
+                    class="px-2 py-1 flex items-center justify-center text-green"
+                    :class="vlsMs.pagin"
+                  >
+                    <InputSearchPagin
+                      v-model="srchPaginVal"
+                      @update:model-value="searchPagin"
+                      @hide-pagin="showSearchPagin = false"
+                    />
+                  </li>
+                  <li
+                    v-if="
+                      currPage + trailNumber < Math.ceil(listEmp.length / 20)
+                    "
+                    @click="goToLast"
+                    :class="vlsMs.pagin"
+                    class="px-2 py-1 flex items-center justify-center text-green"
+                  >
+                    {{ Math.ceil(listEmp.length / 20) }}
+                  </li>
+                  <li
+                    @click="goNext"
+                    :class="vlsMs.pagin"
+                    class="px-2 py-1 flex text-green items-center justify-center rounded-r"
+                  >
+                    <Icon name="mdi:chevron-right" class="text-h5" />
+                  </li>
+                </ul>
+              </div>
+              <p>
+                {{
+                  currPage == 1
+                    ? 1
+                    : new Intl.NumberFormat("id-ID").format(
+                        (currPage - 1) * 20 + 1
+                      )
+                }}
+                -
+                {{
+                  endNumber != currPage
+                    ? currPage * 20
+                    : new Intl.NumberFormat("id-ID").format(
+                        listEmp.length as number
+                      )
+                }}, total
+                {{
+                  new Intl.NumberFormat("id-ID").format(
+                    listEmp.length as number
+                  )
+                }}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -165,4 +363,9 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped></style>
+<style module="vlsMs">
+.pagin {
+  border: 1px solid #43766c;
+  font-size: 12px !important;
+}
+</style>

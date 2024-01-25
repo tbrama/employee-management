@@ -75,11 +75,11 @@ onMounted(() => {
       </form>
     </div>
     <div class="self-center p-4">
-      <!-- <img
-        class="h-[80px] object-contain mx-auto"
+      <img
+        class="h-[120px] object-contain mx-auto"
         src="~/assets/img/logo_kazee_2.svg"
         alt="logo kazee"
-      /> -->
+      />
     </div>
     <Loading :is-loading="isLoading" />
     <ModalBaseCenter id="modAlertLogin" title="Peringatan!">
