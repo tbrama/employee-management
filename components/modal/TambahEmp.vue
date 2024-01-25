@@ -117,7 +117,6 @@ const getJabatan = async () => {
 };
 
 const simpanEmp = async () => {
-  console.log(v$.value.$model);
   v$.value.$reset();
   v$.value.$validate();
   if (!v$.value.$error) {

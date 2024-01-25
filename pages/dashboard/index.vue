@@ -56,6 +56,17 @@ const showAddEmp = () => {
   });
 };
 
+const showAddDept = () => {
+  const modEl: HTMLDialogElement | null = document.querySelector("#addDeptMod");
+  if (modEl) modEl.showModal();
+  const el: null | HTMLElement = document.getElementById("listAdd");
+  if (el) {
+    if (!el.classList.contains("hidden")) {
+      el.classList.add("hidden");
+    }
+  }
+};
+
 const editEmp = async (det: LsEmployee) => {
   appStore.$state.detEmp = JSON.parse(JSON.stringify(det));
   appStore.$state.detEmp.namadept = appStore.$state.lsEmp?.lsdept.find(
@@ -272,6 +283,7 @@ const listPage = computed(() => {
                   Pegawai
                 </button>
                 <button
+                  @click="showAddDept"
                   type="button"
                   class="hover:border-b hover:border-dark-green"
                 >
@@ -511,6 +523,7 @@ const listPage = computed(() => {
     </div>
     <Loading :is-loading="isLoading" />
     <ModalTambahEmp @simpan="isLoading = !isLoading" />
+    <ModalTambahDept @simpan="isLoading = !isLoading" />
     <ModalBaseCenter id="modDeleteEmp" title="Peringatan!"
       ><p>Hapus {{ dataDelete.nama }} ({{ dataDelete.nip }})</p>
       <div class="grid grid-cols-2 gap-2">
