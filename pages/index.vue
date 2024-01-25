@@ -2,7 +2,6 @@
 import { useAuthApi } from "~/composables/AuthApi";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
-import type { DialogHTMLAttributes } from "vue";
 
 const { resLogin, loginAPI } = useAuthApi();
 const isLoading = ref(false);
