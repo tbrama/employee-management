@@ -18,7 +18,14 @@ const char = helpers.regex(/^[a-zA-Z\s-.0-9]*$/);
 const tel = helpers.regex(/^[0-9]+$/);
 
 const appStore = useAppStore();
-const { resListJabat, listJabatAPI, resAddEmp, addEmpAPI } = useAppApi();
+const {
+  resListJabat,
+  listJabatAPI,
+  resAddEmp,
+  addEmpAPI,
+  resListEmp,
+  listEmpAPI,
+} = useAppApi();
 
 const emit = defineEmits(["close-action", "simpan"]);
 const close = () => {
@@ -115,7 +122,8 @@ const simpanEmp = async () => {
     if (modEl) modEl.close();
     emit("simpan");
     await addEmpAPI(appStore.$state.detEmp);
-    console.log(resAddEmp.value);
+    await listEmpAPI();
+    if (resListEmp.value) appStore.$state.lsEmp = resListEmp.value;
     emit("simpan");
     Object.keys(appStore.$state.detEmp).forEach((key) => {
       //@ts-ignore

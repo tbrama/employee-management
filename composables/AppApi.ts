@@ -94,11 +94,11 @@ export const useAppApi = () => {
   };
 
   const resDeleteEmp = ref<any>();
-  const deleteEmpAPI = async (data: LsEmployee) => {
+  const deleteEmpAPI = async (data: { nip: string; updateby: string }) => {
     try {
       await getCSRF();
-      resAddEmp.value = await $fetch(
-        baseURL + "/employee-api/public/api/addemp",
+      resDeleteEmp.value = await $fetch(
+        baseURL + "/employee-api/public/api/deleteemp",
         {
           method: "POST",
           headers: {
@@ -114,7 +114,7 @@ export const useAppApi = () => {
       const splitError = txt.split(" ");
       throw createError({
         statusCode: parseInt(splitError[2]),
-        message: "Add Employee",
+        message: "Delete Employee",
         fatal: true,
       });
     }
@@ -127,5 +127,7 @@ export const useAppApi = () => {
     listJabatAPI,
     resAddEmp,
     addEmpAPI,
+    resDeleteEmp,
+    deleteEmpAPI,
   };
 };

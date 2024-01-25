@@ -4,7 +4,14 @@ import dayjs from "dayjs";
 import idr from "dayjs/locale/id";
 import { useAppStore } from "~/stores/App";
 
-const { resListEmp, listEmpAPI, resListJabat, listJabatAPI } = useAppApi();
+const {
+  resListEmp,
+  listEmpAPI,
+  resListJabat,
+  listJabatAPI,
+  resDeleteEmp,
+  deleteEmpAPI,
+} = useAppApi();
 const isLoading = ref(false);
 const appStore = useAppStore();
 
@@ -78,6 +85,34 @@ const editEmp = async (det: LsEmployee) => {
   }
 };
 
+const dataDelete = reactive({
+  nip: "",
+  nama: "",
+  updateby: useAuthStore().$state.profile?.nip2 as string,
+});
+const showAlertDelete = (det: LsEmployee) => {
+  const modEl: HTMLDialogElement | null =
+    document.querySelector("#modDeleteEmp");
+  if (modEl) modEl.showModal();
+  dataDelete.nip = det.nip;
+  dataDelete.nama = det.nmlengkap;
+  console.log(dataDelete);
+};
+
+const canceldeleteEmp = async () => {
+  const modEl: HTMLDialogElement | null =
+    document.querySelector("#modDeleteEmp");
+  if (modEl) modEl.close();
+};
+
+const deleteEmp = async () => {
+  canceldeleteEmp();
+  isLoading.value = true;
+  await deleteEmpAPI(dataDelete);
+  await getLsEmp();
+  isLoading.value = false;
+};
+
 const getLsEmp = async () => {
   await listEmpAPI();
   if (resListEmp.value) appStore.$state.lsEmp = resListEmp.value;
@@ -120,8 +155,8 @@ const srchPaginVal = ref();
 const currPage = ref(1);
 const paginClass = computed(() => {
   return (pagin: number) => {
-    if (pagin == currPage.value) return "text-slate-50 bg-brown";
-    else return "text-brown";
+    if (pagin == currPage.value) return "text-slate-50 bg-green";
+    else return "text-dark-green";
   };
 });
 
@@ -365,7 +400,11 @@ const listPage = computed(() => {
                         class="text-xl text-green"
                       />
                     </button>
-                    <button type="button" class="flex items-center">
+                    <button
+                      @click="showAlertDelete(le)"
+                      type="button"
+                      class="flex items-center"
+                    >
                       <Icon name="mdi:delete" class="text-xl text-red-600" />
                     </button>
                   </span>
@@ -471,6 +510,25 @@ const listPage = computed(() => {
     </div>
     <Loading :is-loading="isLoading" />
     <ModalTambahEmp @simpan="isLoading = !isLoading" />
+    <ModalBaseCenter id="modDeleteEmp" title="Peringatan!"
+      ><p>Hapus {{ dataDelete.nama }} ({{ dataDelete.nip }})</p>
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          @click="canceldeleteEmp"
+          type="button"
+          class="bg-dark-green rounded shadow font-medium p-2 text-slate-50"
+        >
+          Tidak
+        </button>
+        <button
+          @click="deleteEmp"
+          type="button"
+          class="bg-red-600 rounded shadow font-medium p-2 text-slate-50"
+        >
+          Ya
+        </button>
+      </div>
+    </ModalBaseCenter>
   </div>
 </template>
 
