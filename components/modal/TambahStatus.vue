@@ -17,29 +17,29 @@ import type { ListEmp } from "~/utils/interface/LsEmployee";
 const char = helpers.regex(/^[a-zA-Z\s-.0-9]*$/);
 
 const appStore = useAppStore();
-const { resAddDept, addDeptAPI, resLsDept, lsDeptAPI } = useAppApi();
+const { resAddStatus, addStatusAPI, resLsStatus, lsStatusAPI } = useAppApi();
 
 const emit = defineEmits(["close-action", "simpan"]);
 const close = () => {
-  const modEl: HTMLDialogElement | null = document.querySelector("#addDeptMod");
+  const modEl: HTMLDialogElement | null =
+    document.querySelector("#addStatusMod");
   if (modEl) modEl.close();
-  dataDept.namadept = "";
   v$.value.$reset();
   // console.log(appStore.$state.detEmp);
   // emit("close-action");
 };
 
-const dataDept = reactive({
+const dataStatus = reactive({
   nip: useAuthStore().$state.profile?.nip2 as string,
-  namadept: "",
+  namastatus: "",
 });
 
 const rules = computed(() => {
   return {
-    namadept: {
-      required: helpers.withMessage("Nama departement wajib di isi", required),
+    namastatus: {
+      required: helpers.withMessage("Nama status wajib di isi", required),
       maxLength: helpers.withMessage(
-        "Nama departement maks. 75 karakter",
+        "Nama status maks. 75 karakter",
         maxLength(75)
       ),
       char: helpers.withMessage("Ilegal karakter", char),
@@ -47,9 +47,9 @@ const rules = computed(() => {
   };
 });
 
-const v$ = useVuelidate(rules, dataDept, { $lazy: true });
+const v$ = useVuelidate(rules, dataStatus, { $lazy: true });
 
-const simpanDept = async () => {
+const simpanStatus = async () => {
   v$.value.$validate();
   if (!v$.value.$error) {
     appStore.$state.detEmp.addby = useAuthStore().$state.profile
@@ -57,14 +57,14 @@ const simpanDept = async () => {
     appStore.$state.detEmp.lastupdateby = useAuthStore().$state.profile
       ?.nip2 as string;
     const modEl: HTMLDialogElement | null =
-      document.querySelector("#addDeptMod");
+      document.querySelector("#addStatusMod");
     if (modEl) modEl.close();
     emit("simpan");
-    await addDeptAPI(dataDept);
-    await lsDeptAPI();
-    if (resLsDept.value)
-      (appStore.$state.lsEmp as ListEmp).lsdept = resLsDept.value;
-    dataDept.namadept = "";
+    await addStatusAPI(dataStatus);
+    await lsStatusAPI();
+    if (resLsStatus.value)
+      (appStore.$state.lsEmp as ListEmp).lsstatus = resLsStatus.value;
+    dataStatus.namastatus = "";
     v$.value.$reset();
     emit("simpan");
   }
@@ -74,7 +74,7 @@ const simpanDept = async () => {
 <template>
   <dialog
     @keydown.esc="close"
-    id="addDeptMod"
+    id="addStatusMod"
     class="bg-transparent mr-0 min-w-[50%] max-w-[95%] my-0 h-[100dvh] max-h-[100dvh]"
   >
     <div class="flex flex-col h-full relative">
@@ -97,7 +97,7 @@ const simpanDept = async () => {
           </h1>
           <div class="flex flex-col overflow-auto">
             <p
-              v-for="ld in appStore.$state.lsEmp?.lsdept.filter(
+              v-for="ld in appStore.$state.lsEmp?.lsstatus.filter(
                 ({ valOpt }) => valOpt != 'X'
               )"
               class="flex gap-2 items-center"
@@ -109,13 +109,13 @@ const simpanDept = async () => {
         </div>
         <div class="grid grid-cols-2 gap-2">
           <InputText
-            label="Nama Dept"
-            v-model="dataDept.namadept"
-            :error="v$.namadept.$error"
-            :error-msg="v$.namadept.$errors.length ? v$.namadept.$errors[0].$message as string:''"
-            @update:model-value="v$.namadept.$touch()"
+            label="Nama Status"
+            v-model="dataStatus.namastatus"
+            :error="v$.namastatus.$error"
+            :error-msg="v$.namastatus.$errors.length ? v$.namastatus.$errors[0].$message as string:''"
+            @update:model-value="v$.namastatus.$touch()"
           /><button
-            @click="simpanDept"
+            @click="simpanStatus"
             type="button"
             class="bg-dark-green rounded shadow p-2 text-slate-50 font-medium h-fit self-end"
           >

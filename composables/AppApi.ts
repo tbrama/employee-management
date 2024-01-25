@@ -200,6 +200,59 @@ export const useAppApi = () => {
     }
   };
 
+  const resAddStatus = ref<any>();
+  const addStatusAPI = async (data: { nip: string; namastatus: string }) => {
+    try {
+      await getCSRF();
+      resAddStatus.value = await $fetch(
+        baseURL + "/employee-api/public/api/addstatus",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${authStore.$state.token}`,
+          },
+          body: data,
+        }
+      );
+    } catch (error) {
+      const textError = String(error);
+      const txt = textError.replaceAll("(", "");
+      const splitError = txt.split(" ");
+      throw createError({
+        statusCode: parseInt(splitError[2]),
+        message: "add status Employee",
+        fatal: true,
+      });
+    }
+  };
+
+  const resLsStatus = ref<Options[]>();
+  const lsStatusAPI = async () => {
+    try {
+      await getCSRF();
+      resLsStatus.value = await $fetch(
+        baseURL + "/employee-api/public/api/liststatus",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${authStore.$state.token}`,
+          },
+        }
+      );
+    } catch (error) {
+      const textError = String(error);
+      const txt = textError.replaceAll("(", "");
+      const splitError = txt.split(" ");
+      throw createError({
+        statusCode: parseInt(splitError[2]),
+        message: "list status Employee",
+        fatal: true,
+      });
+    }
+  };
+
   return {
     resListEmp,
     listEmpAPI,
@@ -215,5 +268,9 @@ export const useAppApi = () => {
     addDeptAPI,
     resLsDept,
     lsDeptAPI,
+    resAddStatus,
+    addStatusAPI,
+    resLsStatus,
+    lsStatusAPI,
   };
 };
