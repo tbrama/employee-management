@@ -52,7 +52,7 @@
         </div>
       </div>
     </div>
-    <p v-if="error" class="text-base font-normal text-right" :class="errColor">
+    <p v-if="error" class="text-xs font-normal text-right" :class="errColor">
       {{ errorMsg }}
     </p>
   </div>

@@ -1,5 +1,8 @@
 export interface ListEmp {
   ls_employee: LsEmployee[];
+  lsdept: Options[];
+  lsstatus: Options[];
+  lsjnskelamin: Options[];
 }
 
 export interface LsEmployee {
@@ -22,4 +25,9 @@ export interface LsEmployee {
   addat: string;
   lastupdateby?: string;
   updateat: string;
+}
+
+export interface Options {
+  text: string;
+  valOpt: string;
 }

@@ -13,6 +13,15 @@ const showList = () => {
     el.classList.add("hidden");
   }
 };
+const btnUser = ref();
+onClickOutside(btnUser, () => {
+  const el: HTMLElement | null = document.getElementById("listUser");
+  if (el) {
+    if (!el.classList.contains("hidden")) {
+      el.classList.add("hidden");
+    }
+  }
+});
 
 const logout = async () => {
   emit("logout");
@@ -29,7 +38,7 @@ const logout = async () => {
     class="sticky top-0 w-full p-2 flex items-center justify-between bg-dark-green z-50"
   >
     <h1 class="text-slate-50 font-bold text-xl">Employee Management</h1>
-    <div class="relative z-50">
+    <div class="relative z-50" ref="btnUser">
       <button
         @click="showList"
         type="button"

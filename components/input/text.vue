@@ -6,6 +6,7 @@ const props = defineProps({
   modelValue: { type: String, default: "" },
   error: Boolean,
   errorMsg: String,
+  disable: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue", "get-enter", "hide-search"]);
 const { width } = useWindowSize();
@@ -20,6 +21,13 @@ const valInput = ref(props.modelValue);
 //   },
 //   { debounce: 500, maxWait: 3000 }
 // );
+
+watch(
+  () => props.modelValue,
+  (newModel) => {
+    valInput.value = newModel;
+  }
+);
 
 const enterKey = (e: any) => {
   emit("get-enter", valInput.value);
@@ -43,6 +51,7 @@ const updateValue = (e: Event) => {
         v-model="valInput"
         @keyup="updateValue"
         @keyup.enter="enterKey"
+        :disabled="disable"
       />
     </div>
     <p

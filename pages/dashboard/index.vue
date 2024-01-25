@@ -2,20 +2,93 @@
 import type { LsEmployee } from "~/utils/interface/LsEmployee";
 import dayjs from "dayjs";
 import idr from "dayjs/locale/id";
+import { useAppStore } from "~/stores/App";
 
-const { resListEmp, listEmpAPI } = useAppApi();
+const { resListEmp, listEmpAPI, resListJabat, listJabatAPI } = useAppApi();
 const isLoading = ref(false);
+const appStore = useAppStore();
+
+const btnAdd = ref();
+const showAddOption = () => {
+  const el: null | HTMLElement = document.getElementById("listAdd");
+  if (el) {
+    if (el.classList.contains("hidden")) {
+      el.classList.remove("hidden");
+      return;
+    }
+    el.classList.add("hidden");
+  }
+};
+
+onClickOutside(btnAdd, () => {
+  const el: null | HTMLElement = document.getElementById("listAdd");
+  if (el) {
+    if (!el.classList.contains("hidden")) {
+      el.classList.add("hidden");
+    }
+  }
+});
+
+const showAddEmp = () => {
+  const modEl: HTMLDialogElement | null = document.querySelector("#addEmp");
+  if (modEl) modEl.showModal();
+  const el: null | HTMLElement = document.getElementById("listAdd");
+  if (el) {
+    if (!el.classList.contains("hidden")) {
+      el.classList.add("hidden");
+    }
+  }
+  Object.keys(appStore.$state.detEmp).forEach((key) => {
+    if (
+      Array("namadept", "namastatus", "namajabatan", "jnskelamin").includes(key)
+    ) {
+      //@ts-ignore
+      appStore.$state.detEmp[key] = "X";
+    }
+  });
+};
+
+const editEmp = async (det: LsEmployee) => {
+  appStore.$state.detEmp = JSON.parse(JSON.stringify(det));
+  appStore.$state.detEmp.namadept = appStore.$state.lsEmp?.lsdept.find(
+    ({ text }) => text == det.namadept
+  )?.valOpt as string;
+  appStore.$state.detEmp.namastatus = appStore.$state.lsEmp?.lsstatus.find(
+    ({ text }) => text == det.namastatus
+  )?.valOpt as string;
+  appStore.$state.detEmp.jnskelamin = appStore.$state.lsEmp?.lsjnskelamin.find(
+    ({ text }) => text == det.jnskelamin
+  )?.valOpt as string;
+  isLoading.value = true;
+  await listJabatAPI(appStore.$state.detEmp.namadept);
+  if (resListJabat.value) appStore.$state.lsJabat = resListJabat.value;
+  appStore.$state.detEmp.namajabatan = appStore.$state.lsJabat?.find(
+    ({ text }) => text == det.namajabatan
+  )?.valOpt as string;
+
+  isLoading.value = false;
+
+  const modEl: HTMLDialogElement | null = document.querySelector("#addEmp");
+  if (modEl) modEl.showModal();
+  const el: null | HTMLElement = document.getElementById("listAdd");
+  if (el) {
+    if (!el.classList.contains("hidden")) {
+      el.classList.add("hidden");
+    }
+  }
+};
 
 const getLsEmp = async () => {
   await listEmpAPI();
-  console.log(resListEmp.value);
+  if (resListEmp.value) appStore.$state.lsEmp = resListEmp.value;
+  // console.log(resListEmp.value);
 };
 
 const searchEmp = ref("");
 const listEmp = computed(() => {
-  if (resListEmp.value) {
+  if (appStore.$state.lsEmp) {
     if (searchEmp.value) {
-      return resListEmp.value.ls_employee.filter(
+      return appStore.$state.lsEmp.ls_employee.filter(
         ({ nmlengkap, nip, namadept, namajabatan, namastatus, email }) =>
           [nmlengkap, nip, namadept, namajabatan, namastatus, email].some(
             (val) =>
@@ -25,7 +98,7 @@ const listEmp = computed(() => {
           )
       );
     }
-    return resListEmp.value.ls_employee;
+    return appStore.$state.lsEmp.ls_employee;
   }
   return Array<LsEmployee>();
 });
@@ -143,12 +216,45 @@ const listPage = computed(() => {
         <div class="flex justify-between items-center">
           <div class="flex gap-2 items-center">
             <h1 class="font-semibold text-lg">List Karyawan</h1>
-            <button
-              type="button"
-              class="bg-green p-2 rounded text-slate-50 shadow"
-            >
-              Tambah Karyawan <Icon name="mdi:plus" />
-            </button>
+            <div class="relative" ref="btnAdd">
+              <button
+                @click="showAddOption"
+                type="button"
+                class="bg-green p-2 rounded text-slate-50 shadow"
+              >
+                <Icon name="mdi:plus-thick" class="text-lg" />
+              </button>
+              <div
+                id="listAdd"
+                class="hidden top-0 left-[40px] absolute bg-slate-50 shadow rounded p-2 z-50 space-y-1"
+              >
+                <button
+                  type="button"
+                  class="hover:border-b hover:border-dark-green"
+                  @click="showAddEmp"
+                >
+                  Karyawan
+                </button>
+                <button
+                  type="button"
+                  class="hover:border-b hover:border-dark-green"
+                >
+                  Departemen
+                </button>
+                <button
+                  type="button"
+                  class="hover:border-b hover:border-dark-green"
+                >
+                  Jabatan
+                </button>
+                <button
+                  type="button"
+                  class="hover:border-b hover:border-dark-green"
+                >
+                  Status
+                </button>
+              </div>
+            </div>
           </div>
           <InputSearch placeholder="Cari Karyawan" v-model="searchEmp" />
         </div>
@@ -249,7 +355,11 @@ const listPage = computed(() => {
                   <span
                     class="flex-grow flex gap-2 items-center justify-center"
                   >
-                    <button type="button" class="flex items-center">
+                    <button
+                      @click="editEmp(le)"
+                      type="button"
+                      class="flex items-center"
+                    >
                       <Icon
                         name="mdi:account-edit"
                         class="text-xl text-green"
@@ -360,6 +470,7 @@ const listPage = computed(() => {
       </div>
     </div>
     <Loading :is-loading="isLoading" />
+    <ModalTambahEmp @simpan="isLoading = !isLoading" />
   </div>
 </template>
 

@@ -5,7 +5,7 @@ export interface Login {
 }
 
 export interface DataLogin {
-  nip: number;
+  nip: string;
   nmlengkap: string;
   tgllahir: string;
   tmplahir: string;
@@ -24,4 +24,5 @@ export interface DataLogin {
   addat: string;
   lastupdateby: string;
   updateat: string;
+  nip2: string;
 }
