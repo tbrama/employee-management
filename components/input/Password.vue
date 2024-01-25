@@ -93,7 +93,6 @@ if (props.modelValue) {
         :type="typeInput"
         class="rounded px-4 w-full border py-2 outline-none transition-colors duration-200 ease-in-out placeholder:text-gray-500 placeholder:text-sm focus:ring-2 focus:ring-transparent focus:border-dark-green"
         :class="[border, borderFocus]"
-        maxlength="6"
         @focus="inputFocus()"
         @blur="inputBlur()"
         :value="props.modelValue"
