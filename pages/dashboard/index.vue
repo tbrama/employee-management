@@ -11,6 +11,8 @@ const {
   listJabatAPI,
   resDeleteEmp,
   deleteEmpAPI,
+  resLsJabAll,
+  lsJabAllAPI,
 } = useAppApi();
 const isLoading = ref(false);
 const appStore = useAppStore();
@@ -70,6 +72,22 @@ const showAddDept = () => {
 const showAddStatus = () => {
   const modEl: HTMLDialogElement | null =
     document.querySelector("#addStatusMod");
+  if (modEl) modEl.showModal();
+  const el: null | HTMLElement = document.getElementById("listAdd");
+  if (el) {
+    if (!el.classList.contains("hidden")) {
+      el.classList.add("hidden");
+    }
+  }
+};
+
+const showAddJabatan = async () => {
+  isLoading.value = true;
+  await lsJabAllAPI();
+  if (resLsJabAll.value) appStore.$state.lsJabAll = resLsJabAll.value;
+  isLoading.value = false;
+  const modEl: HTMLDialogElement | null =
+    document.querySelector("#addJabatanMod");
   if (modEl) modEl.showModal();
   const el: null | HTMLElement = document.getElementById("listAdd");
   if (el) {
@@ -302,6 +320,7 @@ const listPage = computed(() => {
                   Departemen
                 </button>
                 <button
+                  @click="showAddJabatan"
                   type="button"
                   class="hover:border-b hover:border-dark-green"
                 >
@@ -538,6 +557,7 @@ const listPage = computed(() => {
     <ModalTambahEmp @simpan="isLoading = !isLoading" />
     <ModalTambahDept @simpan="isLoading = !isLoading" />
     <ModalTambahStatus @simpan="isLoading = !isLoading" />
+    <ModalTambahJabatan @simpan="isLoading = !isLoading" />
     <ModalBaseCenter id="modDeleteEmp" title="Peringatan!"
       ><p>Hapus {{ dataDelete.nama }} ({{ dataDelete.nip }})</p>
       <div class="grid grid-cols-2 gap-2">

@@ -17,39 +17,46 @@ import type { ListEmp } from "~/utils/interface/LsEmployee";
 const char = helpers.regex(/^[a-zA-Z\s-.0-9]*$/);
 
 const appStore = useAppStore();
-const { resAddDept, addDeptAPI, resLsDept, lsDeptAPI } = useAppApi();
+const { resAddJabatan, addJabatanAPI, resLsJabAll, lsJabAllAPI } = useAppApi();
 
 const emit = defineEmits(["close-action", "simpan"]);
 const close = () => {
-  const modEl: HTMLDialogElement | null = document.querySelector("#addDeptMod");
+  const modEl: HTMLDialogElement | null =
+    document.querySelector("#addJabatanMod");
   if (modEl) modEl.close();
-  dataDept.namadept = "";
   v$.value.$reset();
+  dataJabatan.namajab = "";
+  dataJabatan.iddept = "X";
   // console.log(appStore.$state.detEmp);
   // emit("close-action");
 };
 
-const dataDept = reactive({
+const dataJabatan = reactive({
   nip: useAuthStore().$state.profile?.nip2 as string,
-  namadept: "",
+  namajab: "",
+  iddept: "X",
 });
 
 const rules = computed(() => {
   return {
-    namadept: {
-      required: helpers.withMessage("Nama departement wajib di isi", required),
+    namajab: {
+      required: helpers.withMessage("Nama jabatan wajib di isi", required),
       maxLength: helpers.withMessage(
-        "Nama departement maks. 75 karakter",
+        "Nama jabatan maks. 75 karakter",
         maxLength(75)
       ),
       char: helpers.withMessage("Ilegal karakter", char),
     },
+    iddept: {
+      required: helpers.withMessage("Nama Departemen wajib di isi", required),
+      not: helpers.withMessage("Departemen wajib di isi", not(sameAs("X"))),
+    },
   };
 });
 
-const v$ = useVuelidate(rules, dataDept, { $lazy: true });
+const v$ = useVuelidate(rules, dataJabatan, { $lazy: true });
 
-const simpanDept = async () => {
+const simpanJabatan = async () => {
   v$.value.$validate();
   if (!v$.value.$error) {
     appStore.$state.detEmp.addby = useAuthStore().$state.profile
@@ -57,14 +64,14 @@ const simpanDept = async () => {
     appStore.$state.detEmp.lastupdateby = useAuthStore().$state.profile
       ?.nip2 as string;
     const modEl: HTMLDialogElement | null =
-      document.querySelector("#addDeptMod");
+      document.querySelector("#addJabatanMod");
     if (modEl) modEl.close();
     emit("simpan");
-    await addDeptAPI(dataDept);
-    await lsDeptAPI();
-    if (resLsDept.value)
-      (appStore.$state.lsEmp as ListEmp).lsdept = resLsDept.value;
-    dataDept.namadept = "";
+    await addJabatanAPI(dataJabatan);
+    await lsJabAllAPI();
+    if (resLsJabAll.value) appStore.$state.lsJabAll = resLsJabAll.value;
+    dataJabatan.namajab = "";
+    dataJabatan.iddept = "X";
     v$.value.$reset();
     emit("simpan");
     if (modEl) modEl.showModal();
@@ -75,7 +82,7 @@ const simpanDept = async () => {
 <template>
   <dialog
     @keydown.esc="close"
-    id="addDeptMod"
+    id="addJabatanMod"
     class="bg-transparent mr-0 min-w-[50%] max-w-[95%] my-0 h-[100dvh] max-h-[100dvh]"
   >
     <div class="flex flex-col h-full relative">
@@ -83,7 +90,7 @@ const simpanDept = async () => {
         class="p-2 font-bold bg-dark-green flex justify-between items-center"
       >
         <div>
-          <p class="text-slate-50">Departemen</p>
+          <p class="text-slate-50">Jabatan</p>
         </div>
         <button @click="close">
           <Icon name="mdi:close-circle" class="text-slate-50 text-xl" />
@@ -94,31 +101,39 @@ const simpanDept = async () => {
       >
         <div class="flex-grow flex-col gap-2 overflow-auto">
           <h1 class="font-medium text-lg sticky top-0 bg-slate-50">
-            List Departemen
+            List Jabatan
           </h1>
           <div class="flex flex-col overflow-auto">
-            <p
-              v-for="ld in appStore.$state.lsEmp?.lsdept.filter(
-                ({ valOpt }) => valOpt != 'X'
-              )"
-              class="flex gap-2 items-center"
-            >
-              <Icon name="mdi:circle" class="text-xs text-green" />
-              {{ ld.text }}
-            </p>
+            <template v-for="ld in appStore.$state.lsJabAll">
+              <h2 class="font-medium">{{ ld.namadept }}:</h2>
+              <p v-for="lj in ld.lsjab" class="flex gap-2 items-center">
+                <Icon name="mdi:circle" class="text-xs text-green" />
+                {{ lj.namajabatan }}
+              </p>
+            </template>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <InputText
-            label="Nama Dept"
-            v-model="dataDept.namadept"
-            :error="v$.namadept.$error"
-            :error-msg="v$.namadept.$errors.length ? v$.namadept.$errors[0].$message as string:''"
-            @update:model-value="v$.namadept.$touch()"
-          /><button
-            @click="simpanDept"
+            label="Nama Jabatan"
+            v-model="dataJabatan.namajab"
+            :error="v$.namajab.$error"
+            :error-msg="v$.namajab.$errors.length ? v$.namajab.$errors[0].$message as string:''"
+            @update:model-value="v$.namajab.$touch()"
+          />
+          <InputSelect
+            v-if="appStore.$state.lsEmp"
+            label="Departemen"
+            :list="appStore.$state.lsEmp?.lsdept"
+            v-model="dataJabatan.iddept"
+            :error="v$.iddept.$error"
+            :error-msg="v$.iddept.$errors.length ? v$.iddept.$errors[0].$message as string:''"
+            @update:model-value="v$.iddept.$touch()"
+          />
+          <button
+            @click="simpanJabatan"
             type="button"
-            class="bg-dark-green rounded shadow p-2 text-slate-50 font-medium h-fit self-end"
+            class="bg-dark-green rounded shadow p-2 text-slate-50 font-medium h-fit self-end col-span-2"
           >
             Simpan
           </button>

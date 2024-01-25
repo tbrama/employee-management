@@ -25,6 +25,7 @@ const close = () => {
     document.querySelector("#addStatusMod");
   if (modEl) modEl.close();
   v$.value.$reset();
+  dataStatus.namastatus = "";
   // console.log(appStore.$state.detEmp);
   // emit("close-action");
 };
@@ -67,6 +68,7 @@ const simpanStatus = async () => {
     dataStatus.namastatus = "";
     v$.value.$reset();
     emit("simpan");
+    if (modEl) modEl.showModal();
   }
 };
 </script>

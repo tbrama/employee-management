@@ -3,6 +3,7 @@ import type {
   LsEmployee,
   Options,
 } from "~/utils/interface/LsEmployee";
+import type { LsJabAll } from "~/utils/interface/LsJabAll";
 
 export const useAppApi = () => {
   const config = useRuntimeConfig();
@@ -253,6 +254,63 @@ export const useAppApi = () => {
     }
   };
 
+  const resAddJabatan = ref<any>();
+  const addJabatanAPI = async (data: {
+    nip: string;
+    namajab: string;
+    iddept: string;
+  }) => {
+    try {
+      await getCSRF();
+      resAddJabatan.value = await $fetch(
+        baseURL + "/employee-api/public/api/addjabatan",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${authStore.$state.token}`,
+          },
+          body: data,
+        }
+      );
+    } catch (error) {
+      const textError = String(error);
+      const txt = textError.replaceAll("(", "");
+      const splitError = txt.split(" ");
+      throw createError({
+        statusCode: parseInt(splitError[2]),
+        message: "add jabatan Employee",
+        fatal: true,
+      });
+    }
+  };
+
+  const resLsJabAll = ref<LsJabAll[]>();
+  const lsJabAllAPI = async () => {
+    try {
+      await getCSRF();
+      resLsJabAll.value = await $fetch(
+        baseURL + "/employee-api/public/api/listjabatanall",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${authStore.$state.token}`,
+          },
+        }
+      );
+    } catch (error) {
+      const textError = String(error);
+      const txt = textError.replaceAll("(", "");
+      const splitError = txt.split(" ");
+      throw createError({
+        statusCode: parseInt(splitError[2]),
+        message: "list jabatan all Employee",
+        fatal: true,
+      });
+    }
+  };
+
   return {
     resListEmp,
     listEmpAPI,
@@ -272,5 +330,9 @@ export const useAppApi = () => {
     addStatusAPI,
     resLsStatus,
     lsStatusAPI,
+    resAddJabatan,
+    addJabatanAPI,
+    resLsJabAll,
+    lsJabAllAPI,
   };
 };

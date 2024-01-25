@@ -108,6 +108,7 @@ const v$ = useVuelidate(rules, modelVal, { $lazy: true });
 const loadJabat = ref(false);
 const getJabatan = async () => {
   if (appStore.$state.detEmp.namadept != "X") {
+    appStore.$state.detEmp.namajabatan = "X";
     loadJabat.value = true;
     await listJabatAPI(appStore.$state.detEmp.namadept);
     // console.log(resListJabat.value);
